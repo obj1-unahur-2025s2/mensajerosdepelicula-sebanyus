@@ -1,0 +1,106 @@
+import destinos.*
+import mensajeros.*
+import mensajeria.*
+import vehiculos.*
+import paquetes.*
+
+describe "Test de ejercicio mensajeros" {
+
+    test "Roberto puede llevar un paquete pago en camión con un acoplado" {
+        roberto.vehiculo(camion)
+        camion.agregarAcoplados(1)
+        paquete.registrarPago()
+        paquete.cambiarDestino(puenteBrooklyn)
+        assert.that(paquete.puedeEntregarse(roberto))
+    }
+
+    test "Roberto no puede llevar un paquete pago en camión con un acoplado" {
+        roberto.vehiculo(camion)
+        camion.agregarAcoplados(1)
+        paquete.registrarPago()
+        assert.notThat(paquete.puedeEntregarse(roberto))
+    }
+
+    test "Neo no puede llevar paquete no pago a Matrix" {
+        assert.notThat(paquete.puedeEntregarse(neo))
+    }
+
+}
+
+describe "Test de colecciones sobre Mensajeros" {
+  test "Se puede contratar a Roberto" {
+    empresa.contratar(roberto)
+    assert.that(empresa.mensajeros().contains(roberto))
+  }
+
+  test "Se puede despedir a Roberto" {
+    empresa.contratar(roberto)
+    empresa.contratar(neo)
+    empresa.despedirATodos()
+    assert.that(empresa.mensajeros().isEmpty())
+  }
+
+  test "Se envia paquete porque Neo con crédito puede entrar a la Matrix" {
+    paquete.registrarPago()
+    empresa.contratar(neo)
+    empresa.enviarPaquete(paquete)
+    assert.that(empresa.paquetesEnviados().contains(paquete))
+  }
+
+    test "No se envia paquete porque Roberto no puede entrar a la Matrix" {
+        paquete.registrarPago()
+        empresa.contratar(roberto)
+        empresa.enviarPaquete(paquete)
+        assert.notThat(empresa.paquetesEnviados().contains(paquete))
+        assert.that(empresa.paquetesPendientes().contains(paquete))
+    }
+
+    test "La empresa no es grande si solo tiene 2 mensajeros"{
+        empresa.contratar(neo)
+        empresa.contratar(roberto)
+        assert.notThat(empresa.esGrande())
+    }
+
+    test "La empresa es grande porque tiene más de 2 mensajeros"{
+        empresa.contratar(neo)
+        empresa.contratar(roberto)
+        empresa.contratar(chuck)
+        assert.that(empresa.esGrande())
+    }
+
+    test "Un paquete puede ser entregado porque Neo es el primer mensajero" {
+        empresa.contratar(neo)
+        empresa.contratar(chuck)
+        paquete.registrarPago()
+        assert.that(empresa.puedeEntregarUnPaqueteElPrimerEmpleado(paquete))
+    }
+    
+    test "Un paquete no puede ser entregado porque Roberto es el primer contradao" {
+        empresa.contratar(roberto)
+        empresa.contratar(neo)
+        empresa.contratar(chuck)
+        paquete.registrarPago()
+        assert.notThat(empresa.puedeEntregarUnPaqueteElPrimerEmpleado(paquete))
+    }
+
+    test "Un paqueton que está parcialmente pago no se puede entregar" {
+        empresa.contratar(neo)
+        empresa.contratar(chuck)
+        empresa.contratar(roberto)
+        paqueton.agregarDestino(matrix)
+        paqueton.agregarDestino(puenteBrooklyn)
+        paqueton.recibirPago(100)
+        assert.notThat(empresa.puedeEntregarUnPaqueteElPrimerEmpleado(paqueton))
+    }
+
+    test "Un paqueton que está pago se puede entregar" {
+        empresa.contratar(neo)
+        empresa.contratar(chuck)
+        empresa.contratar(roberto)
+        paqueton.agregarDestino(matrix)
+        paqueton.agregarDestino(puenteBrooklyn)
+        paqueton.recibirPago(200)
+        assert.that(empresa.puedeEntregarUnPaqueteElPrimerEmpleado(paqueton))
+    }
+
+}
